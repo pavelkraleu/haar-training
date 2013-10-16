@@ -1,6 +1,6 @@
 #!/bin/bash
 
-samples_per_image=10
+samples_per_image=40
 
 width=150
 height=50
@@ -29,13 +29,15 @@ function gen_vector_name {
 }
 
 function gen_vectors {
+	echo "Generating vectors"
+
 	rm -r vectors/ 2> /dev/null
 	mkdir vectors/
 	rm vectors.vec 2> /dev/null
 	rm vectors.txt 2> /dev/null
 	
 	for image in `cat positives.txt`; do
-		echo $image
+		# echo $image
 		# for debug add -show on the end
 		cmd="/usr/local/bin/opencv_createsamples -bgcolor 0 -bgthresh 0 -maxxangle 1.1 -maxyangle 1.1 maxzangle 0.5 -maxidev 40 -w $width -h $height -img $image -bg negatives.txt -num $samples_per_image -vec vectors/`gen_vector_name`"
 		echo $cmd >> logs.txt
@@ -57,6 +59,7 @@ function gen_vectors {
 }
 
 function train {
+	echo "Starting training"
 	rm -r haar/ 2> /dev/null
 	mkdir haar/
 	
@@ -64,7 +67,7 @@ function train {
 	let "numposcomp=$numpos * $samples_per_image / 2"
 
 	cmd="nice -n $nice_limit /usr/local/bin/opencv_traincascade -data haar -vec vectors.vec -bg negatives.txt -w $width -h $height -numPos  $numposcomp -numNeg `cat negatives.txt | wc -l` -precalcValBufSize $mem_limit -precalcIdxBufSize $mem_limit  -baseFormatSave -maxFalseAlarmRate $maxfalse -minHitRate $minhit -numStages $nstages -mode ALL"
-	echo $cmd
+	#echo $cmd
 
 	echo $cmd >> logs.txt
 	eval "$cmd >> logs.txt 2>&1 &"
@@ -72,6 +75,8 @@ function train {
 
 	echo $pid > pid
 
+	./watcher.sh `pwd`
+	echo "All done"
 }
 
 echo > logs.txt
