@@ -1,18 +1,18 @@
 #!/bin/bash
 
-samples_per_image=40
+samples_per_image=10
 
 width=150
 height=50
 
-mem_limit=3000
+mem_limit=2000
 
 nice_limit=20
 
 nstages=20
 
 minhit=0.99
-maxfalse=0.4
+maxfalse=0.3
 
 
 function list_positives {
@@ -75,7 +75,10 @@ function train {
 
 	echo $pid > pid
 
-	./watcher.sh `pwd`
+	cmd="./watcher.sh `pwd`"
+	echo $cmd >> logs.txt
+	eval "$cmd >> logs.txt 2>&1 &"
+
 	echo "All done"
 }
 
